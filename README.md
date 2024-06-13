@@ -1,3 +1,7 @@
+# Gemini-API
+
+>  Modified from [PublicAffairs/openai-gemini: Gemini ➜ OpenAI API proxy. Serverless! (github.com)](https://github.com/PublicAffairs/openai-gemini). TODO: token pool for sharing API tokens like [Pandora](https://shared.oaifree.com/dashboard).
+
 ## Why
 
 The Gemini API is [free](https://ai.google.dev/pricing "limits applied!"),
@@ -49,15 +53,17 @@ which is necessary for continuous integration (CI).
   - `/edge/v1`  
     _Edge functions_ [limits](https://docs.netlify.com/edge-functions/limits/)
 
-### Deploy to Cloudflare
+### ~~Deploy to Cloudflare~~
 
-[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/PublicAffairs/openai-gemini)
-- Alternatively can be deployed manually pasting content of [`src/worker.mjs`](../resize-images/src/worker.mjs)
-  to https://workers.cloudflare.com/playground (see there `Deploy` button).
-- Alternatively can be deployed with [cli](https://developers.cloudflare.com/workers/wrangler/):
-  `wrangler deploy`
-- Serve locally: `wrangler dev`
-- _Worker_ [limits](https://developers.cloudflare.com/workers/platform/limits/#worker-limits)
+**Cloudflare not recommended, as it automatically choose the nearest Cloudflare CDN node for edge-computing, which may not be in Gemini supported areas.**
+
+~~[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/PublicAffairs/openai-gemini)~~
+- ~~Alternatively can be deployed manually pasting content of [`src/worker.mjs`](../resize-images/src/worker.mjs)~~
+  ~~to https://workers.cloudflare.com/playground (see there `Deploy` button).~~
+- ~~Alternatively can be deployed with [cli](https://developers.cloudflare.com/workers/wrangler/):~~
+  ~~`wrangler deploy`~~
+- ~~Serve locally: `wrangler dev`~~
+- ~~_Worker_ [limits](https://developers.cloudflare.com/workers/platform/limits/#worker-limits)~~
 
 ## How to use
 If you open your newly-deployed site in a browser, you will only see a `404 Not Found` message. This is expected, as the API is not designed for direct browser access.
@@ -105,7 +111,7 @@ set OPENAI_API_BASE=https://my-super-proxy.vercel.app/v1
           - [ ] `tool` (v1beta)
       - [ ] `name`
       - [ ] `tool_calls`
-  - [x] `model` _(value ignored, model is set to `gemini-1.5-pro-latest`)_
+  - [x] `model` _(All common OpenAI and Google Gemini API names now correspond to the three Gemini APIs`)_
   - [ ] `frequency_penalty`
   - [ ] `logit_bias`
   - [ ] `logprobs`
@@ -117,7 +123,7 @@ set OPENAI_API_BASE=https://my-super-proxy.vercel.app/v1
   - [ ] `seed`
   - [x] `stop`: string|array (`stopSequences` [1,5])
   - [x] stream
-  - [x] `temperature` (0.0..2.0 for OpenAI, but Gemini supports up to infinity)
+  - [x] `temperature` (0.0 to 2.0 for OpenAI, but Gemini supports up to infinity)
   - [x] `top_p`
   - [ ] `tools` (v1beta)
   - [ ] `tool_choice` (v1beta)
@@ -127,3 +133,4 @@ set OPENAI_API_BASE=https://my-super-proxy.vercel.app/v1
 - [ ] `completions`
 - [ ] `embeddings`
 - [ ] `models`
+- [ ] `token pool/sharing api tokens` (still under development)
