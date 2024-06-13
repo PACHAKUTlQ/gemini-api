@@ -41,7 +41,21 @@ const API_VERSION = "v1beta";
 // https://github.com/google/generative-ai-js/blob/0931d2ce051215db72785d76fe3ae4e0bc3b5475/packages/main/src/requests/request.ts#L67
 const API_CLIENT = "genai-js/0.5.0"; // npm view @google/generative-ai version
 async function handleRequest(req, apiKey) {
-  const MODEL = "gemini-1.5-pro-latest";
+  let model = "gpt-4";
+  try{
+    const data = await req.json();
+    model = data.model||model;
+  }
+  catch (error) {
+    console.error("Error parsing request body:", error);
+  }
+  let MODEL;
+  if (model.includes("gpt-4")) {
+    MODEL = "gemini-1.5-pro-latest";
+  }
+  else {
+    MODEL = "gemini-1.5-flash-latest";
+  }
   const TASK = req.stream ? "streamGenerateContent" : "generateContent";
   let url = `${BASE_URL}/${API_VERSION}/models/${MODEL}:${TASK}`;
   if (req.stream) { url += "?alt=sse"; }
