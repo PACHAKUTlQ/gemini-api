@@ -1,5 +1,5 @@
 export default {
-  async fetch (request) {
+  async fetch(request) {
     if (request.method === "OPTIONS") {
       return handleOPTIONS();
     }
@@ -55,10 +55,10 @@ async function handleRequest(req, apiKey) {
         "x-goog-api-client": API_CLIENT,
       },
       body: JSON.stringify(await transformRequest(req)), // try
-    });     
+    });
   } catch (err) {
     console.error(err);
-    return new Response(err, { status: 400, headers: {"Access-Control-Allow-Origin": "*"} });
+    return new Response(err, { status: 400, headers: { "Access-Control-Allow-Origin": "*" } });
   }
 
   let body;
@@ -72,7 +72,7 @@ async function handleRequest(req, apiKey) {
         .pipeThrough(new TransformStream({
           transform: parseStream,
           flush: parseStreamFlush,
-          buffer: "" ,
+          buffer: "",
         }))
         .pipeThrough(new TransformStream({
           transform: toOpenAiStream,
@@ -175,14 +175,14 @@ const transformMsg = async ({ role, content }) => {
   // Image input is only supported when using the gpt-4-visual-preview model.
   for (const item of content) {
     switch (item.type) {
-    case "text":
-      parts.push({ text: item.text });
-      break;
-    case "image_url":
-      parts.push(await parseImg(item.image_url.url));
-      break;
-    default:
-      throw TypeError(`Unknown "content" item type: "${item.type}"`);
+      case "text":
+        parts.push({ text: item.text });
+        break;
+      case "image_url":
+        parts.push(await parseImg(item.image_url.url));
+        break;
+      default:
+        throw TypeError(`Unknown "content" item type: "${item.type}"`);
     }
   }
   return { role, parts };
@@ -249,7 +249,7 @@ const processResponse = async (candidates, model, id) => {
   return JSON.stringify({
     id,
     object: "chat.completion",
-    created: Math.floor(Date.now()/1000),
+    created: Math.floor(Date.now() / 1000),
     model,
     // system_fingerprint: "fp_69829325d0",
     choices: candidates.map(transformCandidatesMessage),
@@ -257,7 +257,7 @@ const processResponse = async (candidates, model, id) => {
 };
 
 const responseLineRE = /^data: (.*)(?:\n\n|\r\r|\r\n\r\n)/;
-async function parseStream (chunk, controller) {
+async function parseStream(chunk, controller) {
   chunk = await chunk;
   if (!chunk) { return; }
   this.buffer += chunk;
@@ -268,21 +268,21 @@ async function parseStream (chunk, controller) {
     this.buffer = this.buffer.substring(match[0].length);
   } while (true); // eslint-disable-line no-constant-condition
 }
-async function parseStreamFlush (controller) {
+async function parseStreamFlush(controller) {
   if (this.buffer) {
     console.error("Invalid data:", this.buffer);
     controller.enqueue(this.buffer);
   }
 }
 
-function transformResponseStream (cand, stop, first) {
+function transformResponseStream(cand, stop, first) {
   const item = transformCandidatesDelta(cand);
   if (stop) { item.delta = {}; } else { item.finish_reason = null; }
   if (first) { item.delta.content = ""; } else { delete item.delta.role; }
   const data = {
     id: this.id,
     object: "chat.completion.chunk",
-    created: Math.floor(Date.now()/1000),
+    created: Math.floor(Date.now() / 1000),
     model: this.MODEL,
     // system_fingerprint: "fp_69829325d0",
     choices: [item],
@@ -290,7 +290,7 @@ function transformResponseStream (cand, stop, first) {
   return "data: " + JSON.stringify(data) + delimiter;
 }
 const delimiter = "\n\n";
-async function toOpenAiStream (chunk, controller) {
+async function toOpenAiStream(chunk, controller) {
   const transform = transformResponseStream.bind(this);
   const line = await chunk;
   if (!line) { return; }
@@ -299,14 +299,14 @@ async function toOpenAiStream (chunk, controller) {
     candidates = JSON.parse(line).candidates;
   } catch (err) {
     console.error(line);
-    console.error(err);    
+    console.error(err);
     const length = this.last.length || 1; // at least 1 error msg
     candidates = Array.from({ length }, (_, index) => ({
       finishReason: "error",
       content: { parts: [{ text: err }] },
       index,
-    }));    
-  }  
+    }));
+  }
   for (const cand of candidates) { // !!untested with candidateCount>1
     if (!this.last[cand.index]) {
       controller.enqueue(transform(cand, false, "first"));
@@ -317,12 +317,12 @@ async function toOpenAiStream (chunk, controller) {
     }
   }
 }
-async function toOpenAiStreamFlush (controller) {
+async function toOpenAiStreamFlush(controller) {
   const transform = transformResponseStream.bind(this);
   if (this.last.length > 0) {
     for (const cand of this.last) {
       controller.enqueue(transform(cand, "stop"));
     }
     controller.enqueue("data: [DONE]" + delimiter);
-  }  
+  }
 }
