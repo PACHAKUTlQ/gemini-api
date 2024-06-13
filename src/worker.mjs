@@ -41,8 +41,21 @@ const API_VERSION = "v1beta";
 // https://github.com/google/generative-ai-js/blob/0931d2ce051215db72785d76fe3ae4e0bc3b5475/packages/main/src/requests/request.ts#L67
 const API_CLIENT = "genai-js/0.5.0"; // npm view @google/generative-ai version
 async function handleRequest(req, apiKey) {
-  // const MODEL = "gemini-1.5-pro-latest";
-  let MODEL = req.model;
+  // let MODEL = req.model;
+  let MODEL;
+  const oldModels = ["gemini-1.0-pro", "gemini-1.0-pro-latest", "gpt-3.5", "gpt-3.5-turbo", "gpt-3.5-turbo-1106", "gpt-3.5-turbo-0125"];
+  const proModels = ["gemini-1.5-pro", "gemini-1.5-pro-latest", "gpt-4", "gpt-4-0613", "gpt-4-32k", "gpt-4-32k-0613", "gpt-4-turbo", "gpt-4-turbo-2024-04-09"];
+  const flashModels = ["gemini-1.5-flash", "gemini-1.5-flash-latest", "gpt-4o", "gpt-4o-2024-05-13"];
+  if (oldModels.includes(req.model)) {
+    MODEL = "gemini-1.0-pro-latest";
+  } else if (proModels.includes(req.model)) {
+    MODEL = "gemini-1.5-pro-latest";
+  } else if (flashModels.includes(req.model)) {
+    MODEL = "gemini-1.5-flash-latest";
+  } else {
+    throw new Error("Invalid model parameter");
+  }
+
   const TASK = req.stream ? "streamGenerateContent" : "generateContent";
   let url = `${BASE_URL}/${API_VERSION}/models/${MODEL}:${TASK}`;
   if (req.stream) { url += "?alt=sse"; }
