@@ -2,9 +2,9 @@ import requests
 
 api_key = ""
 
-prompt = """You are Google's gemini 1.5 flash. Is Google gemini 1.5 flash better than gemini 1.5 pro?"""
+prompt = """Hello. What can you do?"""
 
-url = "https:/your-website.com/v1/chat/completions"
+url = "https://your-api-url.com/v1/chat/completions"
 
 headers = {
     "Authorization": f"Bearer {api_key}",
