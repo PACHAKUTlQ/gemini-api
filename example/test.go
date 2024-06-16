@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	apiKey = "Hello. What can you do?" // Replace with your actual API key
+	apiKey = ""
 	url    = "https://your-api-url.com/v1/chat/completions"
 )
 
@@ -72,3 +72,4 @@ func main() {
 		fmt.Println(string(body))
 	}
 }
+
