@@ -35,7 +35,7 @@ which is necessary for continuous integration (CI).
 
 ### Deploy with Vercel
 
- [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/PublicAffairs/openai-gemini&repository-name=my-openai-gemini)
+ [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/PACHAKUTlQ/gemini-api&repository-name=gemini2openai)
 - Alternatively can be deployed with [cli](https://vercel.com/docs/cli):
   `vercel deploy`
 - Serve locally: `vercel dev`
@@ -43,7 +43,7 @@ which is necessary for continuous integration (CI).
 
 ### Deploy to Netlify
 
-[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/PublicAffairs/openai-gemini&integrationName=integrationName&integrationSlug=integrationSlug&integrationDescription=integrationDescription)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/PACHAKUTlQ/gemini-api&integrationName=integrationName&integrationSlug=integrationSlug&integrationDescription=integrationDescription)
 - Alternatively can be deployed with [cli](https://docs.netlify.com/cli/get-started/):
   `netlify deploy`
 - Serve locally: `netlify dev`
@@ -57,7 +57,7 @@ which is necessary for continuous integration (CI).
 
 **Cloudflare not recommended, as it automatically choose the nearest Cloudflare CDN node for edge-computing, which may not be in Gemini supported areas.**
 
-~~[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/PublicAffairs/openai-gemini)~~
+~~[![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/PACHAKUTlQ/gemini-api)~~
 - ~~Alternatively can be deployed manually pasting content of [`src/worker.mjs`](../resize-images/src/worker.mjs)~~
   ~~to https://workers.cloudflare.com/playground (see there `Deploy` button).~~
 - ~~Alternatively can be deployed with [cli](https://developers.cloudflare.com/workers/wrangler/):~~
