@@ -36,9 +36,40 @@ export default {
       console.error(err.toString());
       return new Response(err, { status: 400 });
     }
-    return handleRequest(json, apiKey);
+
+    // return handleRequest(json, apiKey);
+    try {
+      return await handleRequest(json, apiKey);
+    } catch (error) {
+      if (error.message === "Speed limit reached") {
+        // Try remaining API keys
+        let nextKey = getNextApiKey(apiKey, apiKeys);
+        while (nextKey) {
+          try {
+            return await handleRequest(json, nextKey);
+          } catch (err) {
+            if (err.message === "Speed limit reached") {
+              nextKey = getNextApiKey(nextKey, apiKeys);
+              continue;
+            }
+            throw err;
+          }
+        }
+        // All keys reached rate limit
+        return new Response("Rate limit exceeded for all API keys", {
+          status: 429,
+        });
+      }
+      throw error;
+    }
   },
 };
+
+function getNextApiKey(currentKey, apiKeys) {
+  const currentIndex = apiKeys.indexOf(currentKey);
+  const availableKeys = apiKeys.filter((key) => key !== currentKey);
+  return availableKeys.length > 0 ? availableKeys[0] : null;
+}
 
 const handleOPTIONS = async () => {
   return new Response(null, {
@@ -120,6 +151,10 @@ async function handleRequest(req, apiKey) {
       status: 400,
       headers: { "Access-Control-Allow-Origin": "*" },
     });
+  }
+
+  if (response.status === 429) {
+    throw new Error("Speed limit reached");
   }
 
   let body;
