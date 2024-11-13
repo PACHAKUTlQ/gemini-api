@@ -1,0 +1,17 @@
+{
+    "name": "vercel-edge-function",
+    "version": "1.0.0",
+    "description": "A Vercel Edge Function",
+    "main": "worker.mjs",
+    "type": "module",
+    "scripts": {
+        "start": "node worker.mjs"
+    },
+    "dependencies": {
+        "@vercel/edge-config": "^1.0.0",
+        "node:buffer": "^0.0.1"
+    },
+    "engines": {
+        "node": ">=14.0.0"
+    }
+}
