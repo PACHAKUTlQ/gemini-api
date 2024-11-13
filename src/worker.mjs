@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-import { get } from '@vercel/edge-config';
+import { get } from "@vercel/edge-config";
 // alt: import { base64url } from "rfc4648";
 
 export default {
@@ -135,7 +135,7 @@ async function handleRequest(req, apiKey) {
             transform: parseStream,
             flush: parseStreamFlush,
             buffer: "",
-          }),
+          })
         )
         .pipeThrough(
           new TransformStream({
@@ -144,7 +144,7 @@ async function handleRequest(req, apiKey) {
             MODEL,
             id,
             last: [],
-          }),
+          })
         )
         .pipeThrough(new TextEncoderStream());
     } else {
