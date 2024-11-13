@@ -17,6 +17,7 @@ export default {
     const auth = request.headers.get("Authorization");
     let postedApiKey = auth && auth.split(" ")[1];
     let envApiKey = process.env.API_KEY;
+    let apiKey;
     if (postedApiKey == "qwertyuiop") {
       apiKey = envApiKey;
     } else {
