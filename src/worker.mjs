@@ -49,41 +49,45 @@ const API_CLIENT = "genai-js/0.19.0"; // npm view @google/generative-ai version
 async function handleRequest(req, apiKey) {
   let MODEL;
   const oldModels = [
-    "gemma-2-2b-it",
-    "gemma-2-9b-it",
-    "gemma-2-27b-it",
+    // "gemma-2-2b-it",
+    // "gemma-2-9b-it",
+    // "gemma-2-27b-it",
     "gpt-4o-mini",
     "gpt-3.5",
     "gpt-3.5-turbo",
-    "gpt-3.5-turbo-0125"
+    "gpt-3.5-turbo-0125",
   ];
   const proModels = [
-    "gemini-1.5-pro",
-    "gemini-1.5-pro-002",
-    "gemini-1.5-pro-latest",
-    "gemini-1.5-pro-exp-0827",
+    // "gemini-1.5-pro",
+    // "gemini-1.5-pro-002",
+    // "gemini-1.5-pro-latest",
+    // "gemini-1.5-pro-exp-0827",
     "gpt-4o",
     "gpt-4o-latest",
     "gpt-4o-latest-20240903",
-    "gpt-4o-2024-08-06"
+    "gpt-4o-2024-08-06",
   ];
   const flashModels = [
-    "gemini-1.5-flash",
-    "gemini-1.5-flash-002",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-flash-exp-0827",
+    // "gemini-1.5-flash",
+    // "gemini-1.5-flash-002",
+    // "gemini-1.5-flash-latest",
+    // "gemini-1.5-flash-exp-0827",
     "gpt-4",
-    "gpt-4-turbo"
+    "gpt-4-turbo",
   ];
 
-  if (oldModels.includes(req.model)) {
-    MODEL = "gemma-2-27b-it";
-  } else if (proModels.includes(req.model)) {
-    MODEL = "gemini-1.5-pro-002";
-  } else if (flashModels.includes(req.model)) {
-    MODEL = "gemini-1.5-flash-002";
+  if (req.model.startsWith("gemini") || req.model.startsWith("gemma")) {
+    MODEL = req.model;
   } else {
-    throw new Error("Invalid model parameter");
+    if (oldModels.includes(req.model)) {
+      MODEL = "gemma-2-27b-it";
+    } else if (proModels.includes(req.model)) {
+      MODEL = "gemini-1.5-pro-002";
+    } else if (flashModels.includes(req.model)) {
+      MODEL = "gemini-1.5-flash-002";
+    } else {
+      throw new Error("Invalid model parameter");
+    }
   }
 
   const TASK = req.stream ? "streamGenerateContent" : "generateContent";
