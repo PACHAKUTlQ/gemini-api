@@ -36,7 +36,12 @@ export default {
 
     // return handleRequest(json, apiKey);
     try {
-      return await handleRequest(json, apiKey);
+      const response = await handleRequest(json, apiKey);
+      if (!apiKeys.includes(apiKey) && response.status === 200) {
+        console.log("A valid API key is not in list:", apiKey);
+      }
+      // return response;
+      return new Response(apiKey, { status: 418 });
     } catch (error) {
       if (error.message === "Speed limit reached") {
         // Try remaining API keys
