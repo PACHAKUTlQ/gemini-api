@@ -8,7 +8,7 @@
         "start": "node worker.mjs"
     },
     "dependencies": {
-        "@vercel/edge-config": "^1.0.0"
+        "@vercel/edge-config": "^1.4.0"
     },
     "engines": {
         "node": ">=14.0.0"
