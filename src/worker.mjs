@@ -42,15 +42,52 @@ const handleOPTIONS = async () => {
   });
 };
 
-const DEFAULT_MODEL = "gemini-1.5-pro-latest";
 const BASE_URL = "https://generativelanguage.googleapis.com";
 const API_VERSION = "v1beta";
-// https://github.com/google-gemini/generative-ai-js/blob/cf223ff4a1ee5a2d944c53cddb8976136382bee6/src/requests/request.ts#L71
+// https://github.com/google/generative-ai-js/blob/0931d2ce051215db72785d76fe3ae4e0bc3b5475/packages/main/src/requests/request.ts#L67
 const API_CLIENT = "genai-js/0.19.0"; // npm view @google/generative-ai version
 async function handleRequest(req, apiKey) {
-  const model = req.model?.startsWith("gemini-") ? req.model : DEFAULT_MODEL;
+  let MODEL;
+  const oldModels = [
+    "gemma-2-2b-it",
+    "gemma-2-9b-it",
+    "gemma-2-27b-it",
+    "gpt-4o-mini",
+    "gpt-3.5",
+    "gpt-3.5-turbo",
+    "gpt-3.5-turbo-0125"
+  ];
+  const proModels = [
+    "gemini-1.5-pro",
+    "gemini-1.5-pro-002",
+    "gemini-1.5-pro-latest",
+    "gemini-1.5-pro-exp-0827",
+    "gpt-4o",
+    "gpt-4o-latest",
+    "gpt-4o-latest-20240903",
+    "gpt-4o-2024-08-06"
+  ];
+  const flashModels = [
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-002",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash-exp-0827",
+    "gpt-4",
+    "gpt-4-turbo"
+  ];
+
+  if (oldModels.includes(req.model)) {
+    MODEL = "gemma-2-27b-it";
+  } else if (proModels.includes(req.model)) {
+    MODEL = "gemini-1.5-pro-002";
+  } else if (flashModels.includes(req.model)) {
+    MODEL = "gemini-1.5-flash-002";
+  } else {
+    throw new Error("Invalid model parameter");
+  }
+
   const TASK = req.stream ? "streamGenerateContent" : "generateContent";
-  let url = `${BASE_URL}/${API_VERSION}/models/${model}:${TASK}`;
+  let url = `${BASE_URL}/${API_VERSION}/models/${MODEL}:${TASK}`;
   if (req.stream) {
     url += "?alt=sse";
   }
@@ -92,7 +129,7 @@ async function handleRequest(req, apiKey) {
           new TransformStream({
             transform: toOpenAiStream,
             flush: toOpenAiStreamFlush,
-            model,
+            MODEL,
             id,
             last: [],
           }),
@@ -101,7 +138,7 @@ async function handleRequest(req, apiKey) {
     } else {
       body = await response.text();
       try {
-        body = await processResponse(JSON.parse(body), model, id);
+        body = await processResponse(JSON.parse(body), MODEL, id);
       } catch (err) {
         console.error(err);
         response = { status: 500 };
