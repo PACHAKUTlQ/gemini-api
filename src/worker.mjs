@@ -7,6 +7,7 @@ export default {
     if (request.method === "OPTIONS") {
       return handleOPTIONS();
     }
+
     const url = new URL(request.url);
     if (
       !url.pathname.endsWith("/v1/chat/completions") ||
@@ -14,18 +15,17 @@ export default {
     ) {
       return new Response("404 Not Found", { status: 404 });
     }
+
     const auth = request.headers.get("Authorization");
-    let postedApiKey = auth && auth.split(" ")[1];
-    let envApiKey = await get("API_KEYS");
-    let apiKey;
-    if (postedApiKey == "qwertyuiop") {
-      apiKey = envApiKey[1];
-    } else {
-      apiKey = "asdfghjkl";
-    }
+    let apiKey = auth && auth.split(" ")[1];
     if (!apiKey) {
       return new Response("Bad credentials", { status: 401 });
     }
+    let apiKeys = await get("API_KEYS");
+    if (!apiKeys.includes(apiKey)) {
+      return new Response("Forbidden", { status: 403 });
+    }
+
     let json;
     try {
       json = await request.json();
