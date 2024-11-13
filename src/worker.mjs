@@ -16,10 +16,10 @@ export default {
     }
     const auth = request.headers.get("Authorization");
     let postedApiKey = auth && auth.split(" ")[1];
-    let envApiKey = await get("API_KEY");
+    let envApiKey = await get("API_KEYS");
     let apiKey;
     if (postedApiKey == "qwertyuiop") {
-      apiKey = envApiKey;
+      apiKey = envApiKey[1];
     } else {
       apiKey = "asdfghjkl";
     }
