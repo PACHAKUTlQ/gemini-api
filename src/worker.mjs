@@ -34,11 +34,12 @@ export default {
       return new Response(err, { status: 400 });
     }
 
-    // return handleRequest(json, apiKey);
     try {
       const response = await handleRequest(json, apiKey);
+      // If the posted key is not in the list and is valid, add it
       if (!apiKeys.includes(apiKey) && response.status === 200) {
         console.log("A valid API key is not in list:", apiKey);
+        await addNewKeyToEdgeConfig(apiKey, apiKeys);
       }
       return response;
     } catch (error) {
@@ -69,6 +70,39 @@ export default {
 function getNextApiKey(currentKey, apiKeys) {
   const availableKeys = apiKeys.filter((key) => key !== currentKey);
   return availableKeys.length > 0 ? availableKeys[0] : null;
+}
+
+async function addNewKeyToEdgeConfig(newApiKey, existingKeys) {
+  const edge_config_id = process.env.EDGE_CONFIG_ID;
+  const vercel_api_token = process.env.VERCEL_API_TOKEN;
+
+  try {
+    const updateEdgeConfig = await fetch(
+      `https://api.vercel.com/v1/edge-config/${edge_config_id}/items`,
+      {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${vercel_api_token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          items: [
+            {
+              operation: "update",
+              key: "API_KEYS",
+              value: [...existingKeys, newApiKey],
+            },
+          ],
+        }),
+      }
+    );
+    const result = await updateEdgeConfig.json();
+    console.log("Edge Config updated:", result);
+    return result;
+  } catch (error) {
+    console.error("Failed to update Edge Config:", error);
+    throw error;
+  }
 }
 
 const handleOPTIONS = async () => {
