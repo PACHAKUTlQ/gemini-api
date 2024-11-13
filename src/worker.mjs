@@ -22,9 +22,6 @@ export default {
       return new Response("Bad credentials", { status: 401 });
     }
     let apiKeys = await get("API_KEYS");
-    if (!apiKeys.includes(apiKey)) {
-      return new Response("Forbidden", { status: 403 });
-    }
 
     let json;
     try {
@@ -66,7 +63,6 @@ export default {
 };
 
 function getNextApiKey(currentKey, apiKeys) {
-  const currentIndex = apiKeys.indexOf(currentKey);
   const availableKeys = apiKeys.filter((key) => key !== currentKey);
   return availableKeys.length > 0 ? availableKeys[0] : null;
 }
