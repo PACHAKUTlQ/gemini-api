@@ -1,5 +1,5 @@
 import { Buffer } from "node:buffer";
-// import { get } from '@vercel/edge-config';
+import { get } from '@vercel/edge-config';
 // alt: import { base64url } from "rfc4648";
 
 export default {
@@ -16,7 +16,7 @@ export default {
     }
     const auth = request.headers.get("Authorization");
     let postedApiKey = auth && auth.split(" ")[1];
-    let envApiKey = process.env.API_KEY;
+    let envApiKey = await get("API_KEY");
     let apiKey;
     if (postedApiKey == "qwertyuiop") {
       apiKey = envApiKey;
