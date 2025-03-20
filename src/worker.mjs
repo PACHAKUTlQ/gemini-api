@@ -243,8 +243,9 @@ async function addNewKeyToEdgeConfig(newApiKey, existingKeys) {
   }
 }
 
-const DEFAULT_MODEL = "gemini-1.5-pro-latest";
+const DEFAULT_MODEL = "gemini-2.0-flash";
 async function handleCompletions(req, apiKey) {
+  console.log(req);
   let model = DEFAULT_MODEL;
   const oldModels = [
     // "gemma-2-2b-it",
