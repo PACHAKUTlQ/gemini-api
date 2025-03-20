@@ -251,25 +251,19 @@ async function handleCompletions(req, apiKey) {
     // "gemma-2-9b-it",
     // "gemma-2-27b-it",
     "gpt-4o-mini",
+    "gpt-4o-mini-2024-07-18",
     "gpt-3.5",
     "gpt-3.5-turbo",
     "gpt-3.5-turbo-0125",
   ];
   const proModels = [
-    // "gemini-1.5-pro",
-    // "gemini-1.5-pro-002",
-    // "gemini-1.5-pro-latest",
-    // "gemini-1.5-pro-exp-0827",
     "gpt-4o",
     "gpt-4o-latest",
-    "gpt-4o-latest-20240903",
+    "gpt-4o-latest-20250129",
     "gpt-4o-2024-08-06",
+    "gpt-4o-2024-11-20",
   ];
   const flashModels = [
-    // "gemini-1.5-flash",
-    // "gemini-1.5-flash-002",
-    // "gemini-1.5-flash-latest",
-    // "gemini-1.5-flash-exp-0827",
     "gpt-4",
     "gpt-4-turbo",
   ];
@@ -277,11 +271,11 @@ async function handleCompletions(req, apiKey) {
     model = req.model;
   } else {
     if (oldModels.includes(req.model)) {
-      model = "gemma-2-27b-it";
+      model = "gemini-2.0-flash-lite";
     } else if (proModels.includes(req.model)) {
-      model = "gemini-1.5-pro-002";
+      model = "gemini-2.0-pro-exp-02-05";
     } else if (flashModels.includes(req.model)) {
-      model = "gemini-1.5-flash-002";
+      model = "gemini-2.0-flash";
     } else {
       // throw new Error("Invalid model parameter"); // Use HttpError
       throw new HttpError("Invalid model parameter", 400);
