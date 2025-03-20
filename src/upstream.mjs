@@ -1,5 +1,4 @@
 import { Buffer } from "node:buffer";
-import { get } from "@vercel/edge-config";
 
 export default {
   async fetch(request) {
@@ -12,88 +11,33 @@ export default {
     };
     try {
       const auth = request.headers.get("Authorization");
-      let apiKey = auth?.split(" ")[1];
+      const apiKey = auth?.split(" ")[1];
       const assert = (success) => {
         if (!success) {
-          throw new HttpError(
-            "The specified HTTP method is not allowed for the requested resource",
-            400
-          );
+          throw new HttpError("The specified HTTP method is not allowed for the requested resource", 400);
         }
       };
       const { pathname } = new URL(request.url);
-
-      // --- Modifications start here ---
-      let apiKeys = await get("API_KEYS");
-      let json; // Declare json here for wider scope
-
       switch (true) {
         case pathname.endsWith("/chat/completions"):
           assert(request.method === "POST");
-          if (!apiKey) {
-            return new Response("Bad credentials", { status: 401 });
-          }
-
-          try {
-            json = await request.json(); // Parse json here
-            if (!Array.isArray(json.messages)) {
-              throw new HttpError(".messages array required", 400);
-            }
-          } catch (err) {
-            console.error(err.toString());
-            return new Response(err.message, { status: 400 });
-          }
-
-          try {
-            const response = await handleCompletions(json, apiKey); // Pass json
-
-            // If the posted key is not in the list and is valid, add it
-            if (!apiKeys.includes(apiKey) && response.status === 200) {
-              console.log("A valid API key is not in list:", apiKey);
-              await addNewKeyToEdgeConfig(apiKey, apiKeys);
-            }
-            return response;
-
-          } catch (error) {
-            if (error.message === "Speed limit reached") {
-              // Try remaining API keys
-              let nextKey = getNextApiKey(apiKey, apiKeys);
-              while (nextKey) {
-                try {
-                  return await handleCompletions(json, nextKey); // Pass json
-
-                } catch (err) {
-                  if (err.message === "Speed limit reached") {
-                    nextKey = getNextApiKey(nextKey, apiKeys);
-                    continue;
-                  }
-                  throw err; // Re-throw if not a speed limit error
-                }
-              }
-              // All keys reached rate limit
-              return new Response("Rate limit exceeded for all API keys", {
-                status: 429,
-              });
-            }
-            throw error; // Re-throw other errors
-          }
-
+          return handleCompletions(await request.json(), apiKey)
+            .catch(errHandler);
         case pathname.endsWith("/embeddings"):
           assert(request.method === "POST");
-          return handleEmbeddings(await request.json(), apiKey).catch(
-            errHandler
-          );
+          return handleEmbeddings(await request.json(), apiKey)
+            .catch(errHandler);
         case pathname.endsWith("/models"):
           assert(request.method === "GET");
-          return handleModels(apiKey).catch(errHandler);
+          return handleModels(apiKey)
+            .catch(errHandler);
         default:
           throw new HttpError("404 Not Found", 404);
       }
-      // --- Modifications end here ---
     } catch (err) {
       return errHandler(err);
     }
-  },
+  }
 };
 
 class HttpError extends Error {
@@ -116,7 +60,7 @@ const handleOPTIONS = async () => {
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "*",
       "Access-Control-Allow-Headers": "*",
-    },
+    }
   });
 };
 
@@ -128,7 +72,7 @@ const API_CLIENT = "genai-js/0.21.0"; // npm view @google/generative-ai version
 const makeHeaders = (apiKey, more) => ({
   "x-goog-api-client": API_CLIENT,
   ...(apiKey && { "x-goog-api-key": apiKey }),
-  ...more,
+  ...more
 });
 
 async function handleModels(apiKey) {
@@ -138,19 +82,15 @@ async function handleModels(apiKey) {
   let { body } = response;
   if (response.ok) {
     const { models } = JSON.parse(await response.text());
-    body = JSON.stringify(
-      {
-        object: "list",
-        data: models.map(({ name }) => ({
-          id: name.replace("models/", ""),
-          object: "model",
-          created: 0,
-          owned_by: "",
-        })),
-      },
-      null,
-      "  "
-    );
+    body = JSON.stringify({
+      object: "list",
+      data: models.map(({ name }) => ({
+        id: name.replace("models/", ""),
+        object: "model",
+        created: 0,
+        owned_by: "",
+      })),
+    }, null, "  ");
   }
   return new Response(body, fixCors(response));
 }
@@ -170,131 +110,54 @@ async function handleEmbeddings(req, apiKey) {
     req.model = DEFAULT_EMBEDDINGS_MODEL;
     model = "models/" + req.model;
   }
-  const response = await fetch(
-    `${BASE_URL}/${API_VERSION}/${model}:batchEmbedContents`,
-    {
-      method: "POST",
-      headers: makeHeaders(apiKey, { "Content-Type": "application/json" }),
-      body: JSON.stringify({
-        requests: req.input.map((text) => ({
-          model,
-          content: { parts: { text } },
-          outputDimensionality: req.dimensions,
-        })),
-      }),
-    }
-  );
+  const response = await fetch(`${BASE_URL}/${API_VERSION}/${model}:batchEmbedContents`, {
+    method: "POST",
+    headers: makeHeaders(apiKey, { "Content-Type": "application/json" }),
+    body: JSON.stringify({
+      "requests": req.input.map(text => ({
+        model,
+        content: { parts: { text } },
+        outputDimensionality: req.dimensions,
+      }))
+    })
+  });
   let { body } = response;
   if (response.ok) {
     const { embeddings } = JSON.parse(await response.text());
-    body = JSON.stringify(
-      {
-        object: "list",
-        data: embeddings.map(({ values }, index) => ({
-          object: "embedding",
-          index,
-          embedding: values,
-        })),
-        model: req.model,
-      },
-      null,
-      "  "
-    );
+    body = JSON.stringify({
+      object: "list",
+      data: embeddings.map(({ values }, index) => ({
+        object: "embedding",
+        index,
+        embedding: values,
+      })),
+      model: req.model,
+    }, null, "  ");
   }
   return new Response(body, fixCors(response));
-}
-
-// --- More modifications start here ---
-function getNextApiKey(currentKey, apiKeys) {
-  const availableKeys = apiKeys.filter((key) => key !== currentKey);
-  return availableKeys.length > 0 ? availableKeys[0] : null;
-}
-
-async function addNewKeyToEdgeConfig(newApiKey, existingKeys) {
-  const edge_config_id = process.env.EDGE_CONFIG_ID;
-  const vercel_api_token = process.env.VERCEL_API_TOKEN;
-
-  try {
-    const updateEdgeConfig = await fetch(
-      `https://api.vercel.com/v1/edge-config/${edge_config_id}/items`,
-      {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${vercel_api_token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          items: [
-            {
-              operation: "update",
-              key: "API_KEYS",
-              value: [...existingKeys, newApiKey],
-            },
-          ],
-        }),
-      }
-    );
-    const result = await updateEdgeConfig.json();
-    console.log("Edge Config updated:", result);
-    return result;
-  } catch (error) {
-    console.error("Failed to update Edge Config:", error);
-    throw error;
-  }
 }
 
 const DEFAULT_MODEL = "gemini-1.5-pro-latest";
 async function handleCompletions(req, apiKey) {
   let model = DEFAULT_MODEL;
-  const oldModels = [
-    // "gemma-2-2b-it",
-    // "gemma-2-9b-it",
-    // "gemma-2-27b-it",
-    "gpt-4o-mini",
-    "gpt-4o-mini-2024-07-18",
-    "gpt-3.5",
-    "gpt-3.5-turbo",
-    "gpt-3.5-turbo-0125",
-  ];
-  const proModels = [
-    "gpt-4o",
-    "gpt-4o-latest",
-    "gpt-4o-latest-20250129",
-    "gpt-4o-2024-08-06",
-    "gpt-4o-2024-11-20",
-  ];
-  const flashModels = [
-    "gpt-4",
-    "gpt-4-turbo",
-  ];
-  if (req.model.startsWith("gemini") || req.model.startsWith("gemma")) {
-    model = req.model;
-  } else {
-    if (oldModels.includes(req.model)) {
-      model = "gemini-2.0-flash-lite";
-    } else if (proModels.includes(req.model)) {
-      model = "gemini-2.0-pro-exp-02-05";
-    } else if (flashModels.includes(req.model)) {
-      model = "gemini-2.0-flash";
-    } else {
-      // throw new Error("Invalid model parameter"); // Use HttpError
-      throw new HttpError("Invalid model parameter", 400);
-    }
+  switch (true) {
+    case typeof req.model !== "string":
+      break;
+    case req.model.startsWith("models/"):
+      model = req.model.substring(7);
+      break;
+    case req.model.startsWith("gemini-"):
+    case req.model.startsWith("learnlm-"):
+      model = req.model;
   }
   const TASK = req.stream ? "streamGenerateContent" : "generateContent";
   let url = `${BASE_URL}/${API_VERSION}/models/${model}:${TASK}`;
-  if (req.stream) {
-    url += "?alt=sse";
-  }
+  if (req.stream) { url += "?alt=sse"; }
   const response = await fetch(url, {
     method: "POST",
     headers: makeHeaders(apiKey, { "Content-Type": "application/json" }),
     body: JSON.stringify(await transformRequest(req)), // try
   });
-
-  if (response.status === 429) {
-    throw new Error("Speed limit reached");
-  }
 
   let body = response.body;
   if (response.ok) {
